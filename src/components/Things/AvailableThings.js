@@ -1,35 +1,46 @@
+import { useEffect, useState } from "react";
 import Card from "../UI/Card";
 import classes from "./AvailableThings.module.css";
 import ThingsItem from "./ThingsItem/ThingsItem";
-const DUMMY_MEALS = [
-  {
-    id: "m1",
-    name: "Sushi",
-    description: "Finest fish and veggies",
-    price: 22.99,
-  },
-  {
-    id: "m2",
-    name: "Schnitzel",
-    description: "A german specialty!",
-    price: 16.5,
-  },
-  {
-    id: "m3",
-    name: "Barbecue Burger",
-    description: "American, raw, meaty",
-    price: 12.99,
-  },
-  {
-    id: "m4",
-    name: "Green Bowl",
-    description: "Healthy...and green...",
-    price: 18.99,
-  },
-];
 
 const AvailableThings = (props) => {
-  const thingsList = DUMMY_MEALS.map((item) => (
+  const [httpError, setHttpError] = useState();
+  useEffect(() => {
+    const fetchThings = async () => {
+      const response = await fetch(
+        "https://react-base-d188b-default-rtdb.firebaseio.com/things.json"
+      );
+
+      if (!response.ok) {
+        throw new Error("Not fetch data!");
+      }
+      const result = await response.json();
+
+      const loadedThings = [];
+
+      for (const key in result) {
+        loadedThings.push({
+          id: key,
+          name: result[key].name,
+          description: result[key].description,
+          price: result[key].price,
+        });
+      }
+      setThings(loadedThings);
+    };
+    fetchThings().catch((err) => {
+      setHttpError(err.message);
+    });
+  }, []);
+  const [things, setThings] = useState([]);
+  if (httpError) {
+    return (
+      <section>
+        <p className={classes.ThingsError}>{httpError}</p>
+      </section>
+    );
+  }
+  const thingsList = things.map((item) => (
     <ThingsItem
       id={item.id}
       key={item.id}
